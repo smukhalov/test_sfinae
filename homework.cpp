@@ -190,8 +190,8 @@ int main(){
     }
 
     {
-        // auto x = std::make_tuple(1, 2, 3, "gg");
-        // Print(x);
+        auto x = std::make_tuple(1, 2, 3, "gg");
+        Print(x);
 
         // const std::vector<int> y{4, 5, 6};
         // Print(y);
