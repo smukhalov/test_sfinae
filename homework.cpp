@@ -20,7 +20,7 @@ struct is_vector<std::vector<T, Allocator>> : std::true_type
 {};
 
 template <typename T>
-constexpr bool is_vector_v = is_vector<std::remove_cvref_t<T>>::value;
+constexpr bool is_vector_v = is_vector<std::decay_t<T>>::value;
 // ########## vector #############
 
 // ########## list #############
@@ -33,15 +33,15 @@ struct is_list<std::list<T, Allocator>> : std::true_type
 {};
 
 template <typename T>
-constexpr bool is_list_v = is_list<std::remove_cvref_t<T>>::value;
+constexpr bool is_list_v = is_list<std::decay_t<T>>::value;
 // ########## list #############
 
 // ########## numeric #############
 template <typename T>
 struct is_strictly_numeric_integral{
-    static constexpr bool value = std::is_integral_v<std::remove_cvref_t<T>> &&
-                                  !std::is_same_v<std::remove_cvref_t<T>, bool> &&
-                                  !std::is_same_v<std::remove_cvref_t<T>, char>;
+    static constexpr bool value = std::is_integral_v<std::decay_t<T>> &&
+                                  !std::is_same_v<std::decay_t<T>, bool> &&
+                                  !std::is_same_v<std::decay_t<T>, char>;
 };
 template <typename T>
 constexpr bool is_strictly_numeric_integral_v = is_strictly_numeric_integral<T>::value;
@@ -50,7 +50,7 @@ constexpr bool is_strictly_numeric_integral_v = is_strictly_numeric_integral<T>:
 // ########## string #############
 template <typename T>
 struct is_string{
-    static constexpr bool value = std::is_same_v<std::remove_cvref_t<T>, std::string>;
+    static constexpr bool value = std::is_same_v<std::decay_t<T>, std::string>;
 };
 
 template <typename T>
