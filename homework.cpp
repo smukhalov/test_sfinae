@@ -58,22 +58,41 @@ constexpr bool is_string_v = is_string<T>::value;
 // ########## string #############
 
 // ########## tuple #############
-template <typename>
-struct is_tuple : std::false_type
+// template <typename First, typename... T>
+// struct all_same_type{
+//     constexpr static bool value = std::is_same_v<std::tuple<First, T...>, std::tuple<T..., First>>;
+// };
+// template <typename... T>
+// struct all_same_type<std::tuple<T...>> : all_same_type<T...>
+// {};
+// template <typename... T>
+// constexpr bool all_same_type_v = all_same_type<T...>::value;
+
+// template <typename Head, typename... Tail>
+// constexpr bool all_same(const std::tuple<Head, Tail...> &){
+//     return (std::is_same_v<Head, Tail> && ...);
+// }
+// constexpr bool all_same(const std::tuple<> &){
+//     return true;
+// }
+template <typename First, typename... T>
+struct all_same_type_tuple {
+    constexpr static bool value = std::is_same_v<std::tuple<First, T...>, std::tuple<T..., First>>;
+};
+
+template <typename... T>
+struct all_same_type_tuple<std::tuple<T...>> : all_same_type_tuple<T...>
 {};
 
-template <typename T>
-struct is_tuple<std::tuple<T>> : std::true_type
-{};
+template <typename... T>
+constexpr bool all_same_type_tuple_v = all_same_type_tuple<T...>::value;
 
-template <typename T>
-constexpr bool is_tuple_v = is_tuple<std::tuple<T>>::value;
 // ########## tuple #############
 
 template <typename T,
     typename Enable = std::enable_if_t<is_string_v<T> 
         || is_strictly_numeric_integral_v<T> 
-        || is_vector_v<T> || is_list_v<T> || is_tuple_v<T>,
+        || is_vector_v<T> || is_list_v<T>  || all_same_type_tuple_v<T>, 
     void>>
 void Print(T &&t)
 {
@@ -132,6 +151,7 @@ void Print(T &&t)
         std::cout << '\n';
     } 
     else {
+        static_assert(all_same_type_tuple_v<T&&>);
         std::stringstream ss;
         std::cout << "tuple - ";
         std::apply([&ss](auto &&...args)
@@ -198,13 +218,16 @@ int main(){
     }
 
     {
-        auto x = std::make_tuple(1, 2, 3, "fff");
+        auto x = std::make_tuple(1, 2, 3, 1.0f, "asdf"s);
         Print(x);
 
-        // const std::vector<int> y{4, 5, 6};
-        // Print(y);
+        const auto y = std::make_tuple(4, 5, 6);
+        Print(y);
 
-        // Print(std::vector<int>{7, 8, 9});
+        // Print(std::make_tuple(7, 8, 9));
+
+        // auto ss = std::make_tuple("1"s, "2"s, "3"s, "1.0f"s, "asdf"s);
+        // Print(ss);
     }
 
     // std::tuple t{42, 'a', 4.2}; // Another C++17 feature: class template argument deduction
@@ -212,6 +235,19 @@ int main(){
     //            { ((std::cout << args << '\n'), ...); }, t);
 
     std::cout << "OK\n";
+
+    // std::tuple<int, int, int> t = {1, 1, 1};
+    // std::cout << all_same_type_tuple_v<decltype(t)> << "\n";
+
+    // std::tuple<int, float, int> u = {1, 1.0, 1};
+    // std::cout << all_same_type_tuple_v<decltype(u)> << "\n";
+
+    std::tuple<int, int, int> t1{1, 1, 1};
+    std::cout << all_same_type_tuple_v<decltype(t1)> << "\n";
+    //static_assert(all_same_type_tuple(decltype(t1)));
+    std::tuple<int, float, int> t2{1, 1.0f, 1};
+    std::cout << all_same_type_tuple_v<decltype(t2)> << "\n";
+    //static_assert(!all_same_type(t2));
 
     return 0;
 }
