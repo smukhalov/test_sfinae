@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <sstream>
 #include <type_traits>
 
 using namespace std::string_literals;
@@ -72,14 +73,15 @@ constexpr bool is_tuple_v = is_tuple<std::tuple<T>>::value;
 template <typename T,
     typename Enable = std::enable_if_t<is_string_v<T> 
         || is_strictly_numeric_integral_v<T> 
-        || is_vector_v<T> || is_list_v<T>,
-                                             void>>
+        || is_vector_v<T> || is_list_v<T> || is_tuple_v<T>,
+    void>>
 void Print(T &&t)
 {
     std::cout << __PRETTY_FUNCTION__ << '\n';
     if constexpr (is_string_v<T>){
         std::cout << "string - " << const_cast<std::string&>(t) << '\n';
-    } else if constexpr (is_strictly_numeric_integral_v<T>){
+    } 
+    else if constexpr (is_strictly_numeric_integral_v<T>){
         std::cout << "int - " << t << "; ";
         std::size_t size = sizeof(T);
         std::vector<unsigned char> aux_v(size);
@@ -97,7 +99,8 @@ void Print(T &&t)
             }
         }
         std::cout << '\n';
-    } else if constexpr (is_vector_v<T>){
+    } 
+    else if constexpr (is_vector_v<T>){
         std::cout << "vector -";
         bool need_dot = false;
         for(const auto& x : t){
@@ -110,9 +113,8 @@ void Print(T &&t)
             }
         }
         std::cout << '\n';
-    }
-    else if constexpr (is_list_v<T>)
-    {
+    } 
+    else if constexpr (is_list_v<T>) {
         std::cout << "list -";
         bool need_dot = false;
         for (const auto &x : t)
@@ -128,10 +130,16 @@ void Print(T &&t)
             }
         }
         std::cout << '\n';
-    }
-    else
-    {
-        std::cout << "tuple" << '\n';
+    } 
+    else {
+        std::stringstream ss;
+        std::cout << "tuple - ";
+        std::apply([&ss](auto &&...args)
+                   { ((ss << args << '.'), ...); }, t);
+
+        const std::string& s = ss.str();
+        std::cout << s.substr(0, s.size()-1);
+        std::cout << '\n';
     }
 }
 
@@ -190,7 +198,7 @@ int main(){
     }
 
     {
-        auto x = std::make_tuple(1, 2, 3, "gg");
+        auto x = std::make_tuple(1, 2, 3, "fff");
         Print(x);
 
         // const std::vector<int> y{4, 5, 6};
@@ -199,7 +207,11 @@ int main(){
         // Print(std::vector<int>{7, 8, 9});
     }
 
-     std::cout << "OK\n";
+    // std::tuple t{42, 'a', 4.2}; // Another C++17 feature: class template argument deduction
+    // std::apply([](auto &&...args)
+    //            { ((std::cout << args << '\n'), ...); }, t);
 
-     return 0;
+    std::cout << "OK\n";
+
+    return 0;
 }
