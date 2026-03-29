@@ -1,13 +1,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 #include <type_traits>
 
 using namespace std::string_literals;
 
 #include <tuple>
 
-// Primary template: default to false
+// ########## vector #############
 template <typename T>
 struct is_vector : std::false_type
 {};
@@ -17,10 +18,24 @@ template <typename T, typename Allocator>
 struct is_vector<std::vector<T, Allocator>> : std::true_type
 {};
 
-// Helper constant for convenience (C++14 onwards)
 template <typename T>
 constexpr bool is_vector_v = is_vector<std::remove_cvref_t<T>>::value;
+// ########## vector #############
 
+// ########## list #############
+template <typename T>
+struct is_list : std::false_type
+{};
+
+template <typename T, typename Allocator>
+struct is_list<std::list<T, Allocator>> : std::true_type
+{};
+
+template <typename T>
+constexpr bool is_list_v = is_list<std::remove_cvref_t<T>>::value;
+// ########## list #############
+
+// ########## numeric #############
 template <typename T>
 struct is_strictly_numeric_integral{
     static constexpr bool value = std::is_integral_v<std::remove_cvref_t<T>> &&
@@ -29,30 +44,35 @@ struct is_strictly_numeric_integral{
 };
 template <typename T>
 constexpr bool is_strictly_numeric_integral_v = is_strictly_numeric_integral<T>::value;
+// ########## numeric #############
 
+// ########## string #############
 template <typename T>
 struct is_string{
     static constexpr bool value = std::is_same_v<std::remove_cvref_t<T>, std::string>;
 };
 
+template <typename T>
+constexpr bool is_string_v = is_string<T>::value;
+// ########## string #############
+
+// ########## tuple #############
 template <typename>
 struct is_tuple : std::false_type
 {};
 
-template <typename... T>
-struct is_tuple<std::tuple<T...>> : std::true_type
+template <typename T>
+struct is_tuple<std::tuple<T>> : std::true_type
 {};
 
-template <typename... T>
-constexpr bool is_tuple_v = is_tuple<std::tuple<T...>>::value;
-
 template <typename T>
-constexpr bool is_string_v = is_string<T>::value;
+constexpr bool is_tuple_v = is_tuple<std::tuple<T>>::value;
+// ########## tuple #############
 
 template <typename T,
     typename Enable = std::enable_if_t<is_string_v<T> 
         || is_strictly_numeric_integral_v<T> 
-        || is_vector_v<T>, //|| is_tuple<T>,
+        || is_vector_v<T> || is_list_v<T>,
                                              void>>
 void Print(T &&t)
 {
@@ -90,7 +110,27 @@ void Print(T &&t)
             }
         }
         std::cout << '\n';
-    } else {
+    }
+    else if constexpr (is_list_v<T>)
+    {
+        std::cout << "list -";
+        bool need_dot = false;
+        for (const auto &x : t)
+        {
+            if (need_dot)
+            {
+                std::cout << ".";
+            }
+            std::cout << x;
+            if (!need_dot)
+            {
+                need_dot = true;
+            }
+        }
+        std::cout << '\n';
+    }
+    else
+    {
         std::cout << "tuple" << '\n';
     }
 }
@@ -138,10 +178,27 @@ int main(){
 
         Print(std::vector<int>{7, 8, 9});
     }
+
     {
-        std::vector<int> v{1, 2, 3};
-        std::cout << std::boolalpha << is_vector_v<std::vector<int>> << '\n';
+        std::list<short> x{400, 300, 200, 100};
+        Print(x);
+
+        const std::list<int> y{4, 5, 6};
+        Print(y);
+
+        Print(std::list<int>{7, 8, 9});
     }
+
+    {
+        // auto x = std::make_tuple(1, 2, 3, "gg");
+        // Print(x);
+
+        // const std::vector<int> y{4, 5, 6};
+        // Print(y);
+
+        // Print(std::vector<int>{7, 8, 9});
+    }
+
      std::cout << "OK\n";
 
      return 0;
