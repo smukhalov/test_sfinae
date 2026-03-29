@@ -81,11 +81,11 @@ struct all_same_type_tuple {
 };
 
 template <typename... T>
-struct all_same_type_tuple<std::tuple<T...>> : all_same_type_tuple<T...>
+    struct all_same_type_tuple < std::tuple<T...>> : all_same_type_tuple<T...>
 {};
 
 template <typename... T>
-constexpr bool all_same_type_tuple_v = all_same_type_tuple<T...>::value;
+constexpr bool all_same_type_tuple_v = all_same_type_tuple < std::decay_t<T>...>::value;
 
 // ########## tuple #############
 
@@ -219,15 +219,15 @@ int main(){
 
     {
         auto x = std::make_tuple(1, 2, 3, 1.0f, "asdf"s);
-        Print(x);
+        //Print(x);
 
         const auto y = std::make_tuple(4, 5, 6);
         Print(y);
 
-        // Print(std::make_tuple(7, 8, 9));
+        Print(std::make_tuple(7, 8, 9));
 
-        // auto ss = std::make_tuple("1"s, "2"s, "3"s, "1.0f"s, "asdf"s);
-        // Print(ss);
+        auto ss = std::make_tuple("1"s, "2"s, "3"s, 1.0f, "asdf"s);
+        //Print(ss);
     }
 
     // std::tuple t{42, 'a', 4.2}; // Another C++17 feature: class template argument deduction
@@ -242,11 +242,11 @@ int main(){
     // std::tuple<int, float, int> u = {1, 1.0, 1};
     // std::cout << all_same_type_tuple_v<decltype(u)> << "\n";
 
-    std::tuple<int, int, int> t1{1, 1, 1};
-    std::cout << all_same_type_tuple_v<decltype(t1)> << "\n";
+    // std::tuple<int, int, int> t1{1, 1, 1};
+    // std::cout << all_same_type_tuple_v<decltype(t1)> << "\n";
     //static_assert(all_same_type_tuple(decltype(t1)));
-    std::tuple<int, float, int> t2{1, 1.0f, 1};
-    std::cout << all_same_type_tuple_v<decltype(t2)> << "\n";
+    // std::tuple<int, float, int> t2{1, 1.0f, 1};
+    // std::cout << all_same_type_tuple_v<decltype(t2)> << "\n";
     //static_assert(!all_same_type(t2));
 
     return 0;
